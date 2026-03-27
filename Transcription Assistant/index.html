@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>扒带小助手</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #FDF8F3;
+            --bg-secondary: #FFF8F2;
+            --bg-tertiary: #F5EDE5;
+            --border-color: #C4D4E0;
+            --text-primary: #5A5A5A;
+            --text-secondary: #8A9BA8;
+            --accent-blue: #8BB4C9;
+            --accent-green: #B8C9A3;
+            --accent-orange: #E8C4A8;
+            --accent-red: #D4A5A5;
+            --accent-purple: #C9B8D4;
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* File Upload Area */
+        .upload-area {
+            background: var(--bg-secondary);
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent-blue);
+            background: var(--bg-tertiary);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--accent-green);
+            background: rgba(63, 185, 80, 0.1);
+        }
+
+        .upload-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+        }
+
+        .upload-area p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .upload-area .formats {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-top: 8px;
+            opacity: 0.7;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* Player Section */
+        .player-section {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .player-section.active {
+            display: block;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-green);
+        }
+
+        .file-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .change-file-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .change-file-btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        /* Time Display */
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .time-current {
+            color: var(--accent-blue);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-bottom: 24px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+            overflow: visible;
+        }
+
+        .progress-bar:hover {
+            height: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.1s linear;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: var(--text-primary);
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .progress-bar:hover .progress-fill::after {
+            opacity: 1;
+        }
+
+        /* AB Loop Markers */
+        .ab-marker {
+            position: absolute;
+            top: -4px;
+            width: 4px;
+            height: calc(100% + 8px);
+            border-radius: 2px;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .ab-marker.visible {
+            opacity: 1;
+        }
+
+        .ab-marker.point-a {
+            background: var(--accent-green);
+            box-shadow: 0 0 8px var(--accent-green);
+        }
+
+        .ab-marker.point-b {
+            background: var(--accent-orange);
+            box-shadow: 0 0 8px var(--accent-orange);
+        }
+
+        .ab-marker::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+        }
+
+        .ab-marker.point-a::before {
+            border-top: 6px solid var(--accent-green);
+        }
+
+        .ab-marker.point-b::before {
+            border-top: 6px solid var(--accent-orange);
+        }
+
+        .ab-region {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            background: rgba(163, 113, 247, 0.2);
+            border-radius: 3px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .ab-region.visible {
+            opacity: 1;
+        }
+
+        /* Control Buttons */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .control-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 1.1rem;
+        }
+
+        .control-btn:hover {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            transform: scale(1.05);
+        }
+
+        .control-btn.play-btn {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--accent-blue), #7BA3B8);
+            border: none;
+            font-size: 1.4rem;
+        }
+
+        .control-btn.play-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 20px rgba(139, 180, 201, 0.4);
+        }
+
+        .skip-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 0 12px;
+            height: 36px;
+            border-radius: 18px;
+        }
+
+        .skip-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* AB Loop Section */
+        .ab-loop-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .ab-loop-section.active {
+            display: block;
+        }
+
+        .ab-loop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .ab-loop-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ab-status {
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .ab-status.inactive {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .ab-status.active {
+            background: rgba(163, 113, 247, 0.2);
+            color: var(--accent-purple);
+        }
+
+        .ab-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .ab-btn {
+            flex: 1;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .ab-btn:hover {
+            border-color: var(--accent-purple);
+        }
+
+        .ab-btn.point-a {
+            color: var(--accent-green);
+        }
+
+        .ab-btn.point-b {
+            color: var(--accent-orange);
+        }
+
+        .ab-btn.cancel {
+            color: var(--accent-red);
+        }
+
+        .ab-times {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 12px;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-size: 0.85rem;
+        }
+
+        .ab-time {
+            color: var(--text-secondary);
+        }
+
+        .ab-time span {
+            font-weight: 600;
+        }
+
+        .ab-time.point-a span {
+            color: var(--accent-green);
+        }
+
+        .ab-time.point-b span {
+            color: var(--accent-orange);
+        }
+
+        /* Keyboard Shortcuts */
+        .shortcuts-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-top: 20px;
+        }
+
+        .shortcuts-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+        }
+
+        .shortcuts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 8px;
+        }
+
+        .shortcut-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .key {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-size: 0.75rem;
+            min-width: 28px;
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        /* Loading State */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(253, 248, 243, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-content {
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--bg-tertiary);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .toast.error {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        .toast.info {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: auto;
+            padding: 20px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="imgs/logo.png" alt="扒带小助手" style="height: 60px; margin: 0 auto;">
+    </div>
+
+    <div class="container">
+        <div class="upload-area" id="uploadArea">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <p>点击选择音频文件或将文件拖拽到此处</p>
+            <p class="formats">支持 MP3、WAV 格式</p>
+            <input type="file" id="fileInput" accept=".mp3,.wav,audio/mpeg,audio/wav">
+        </div>
+
+        <div class="player-section" id="playerSection">
+            <div class="file-info">
+                <div class="file-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 18V5l12-2v13"/>
+                        <circle cx="6" cy="18" r="3"/>
+                        <circle cx="18" cy="16" r="3"/>
+                    </svg>
+                </div>
+                <span class="file-name" id="fileName">audio.mp3</span>
+                <button class="change-file-btn" id="changeFileBtn">更换文件</button>
+            </div>
+
+            <div class="time-display">
+                <span class="time-current" id="currentTime">0:00</span>
+                <span id="duration">0:00</span>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                    <div class="ab-region" id="abRegion"></div>
+                    <div class="ab-marker point-a" id="abMarkerA"></div>
+                    <div class="ab-marker point-b" id="abMarkerB"></div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn skip-btn" id="skipBackBtn" title="快退3秒">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="19 20 9 12 19 4 19 20"/>
+                        <line x1="5" y1="19" x2="5" y2="5"/>
+                    </svg>
+                    <span style="font-size: 0.7rem;">3s</span>
+                </button>
+                <button class="control-btn play-btn" id="playBtn" title="播放/暂停">
+                    <svg id="playIcon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="5 3 19 12 5 21 5 3"/>
+                    </svg>
+                    <svg id="pauseIcon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                        <rect x="6" y="4" width="4" height="16"/>
+                        <rect x="14" y="4" width="4" height="16"/>
+                    </svg>
+                </button>
+                <button class="control-btn skip-btn" id="skipForwardBtn" title="快进3秒">
+                    <span style="font-size: 0.7rem;">3s</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="5 4 15 12 5 20 5 4"/>
+                        <line x1="19" y1="5" x2="19" y2="19"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="ab-loop-section" id="abLoopSection">
+                <div class="ab-loop-header">
+                    <span class="ab-loop-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="17 1 21 5 17 9"/>
+                            <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                            <polyline points="7 23 3 19 7 15"/>
+                            <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                        </svg>
+                        AB 循环
+                    </span>
+                    <span class="ab-status inactive" id="abStatus">未设置</span>
+                </div>
+                <div class="ab-buttons">
+                    <button class="ab-btn point-a" id="setABtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="12" cy="12" r="10"/>
+                        </svg>
+                        设置 A 点
+                    </button>
+                    <button class="ab-btn point-b" id="setBBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="12" cy="12" r="10"/>
+                        </svg>
+                        设置 B 点
+                    </button>
+                    <button class="ab-btn cancel" id="cancelLoopBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                        取消
+                    </button>
+                </div>
+                <div class="ab-times">
+                    <div class="ab-time point-a">A: <span id="pointA">--:--</span></div>
+                    <div class="ab-time point-b">B: <span id="pointB">--:--</span></div>
+                </div>
+            </div>
+
+            <div class="shortcuts-section">
+                <div class="shortcuts-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="4" width="20" height="16" rx="2"/>
+                        <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/>
+                    </svg>
+                    键盘快捷键
+                </div>
+                <div class="shortcuts-grid">
+                    <div class="shortcut-item">
+                        <span class="key">←</span>
+                        <span>快退 3 秒</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="key">→</span>
+                        <span>快进 3 秒</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="key">空格</span>
+                        <span>播放/暂停</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="key">A</span>
+                        <span>设置 A 点</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="key">B</span>
+                        <span>设置 B 点</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="key">C</span>
+                        <span>取消循环</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p class="loading-text" id="loadingText">正在加载...</p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="footer">
+        Design by 6song
+    </div>
+
+    <script>
+        // ==================== 全局变量 ====================
+        let audioContext = null;
+        let audioBuffer = null;
+        let sourceNode = null;
+        let gainNode = null;
+        let isPlaying = false;
+        let startTime = 0;
+        let pauseTime = 0;
+        let duration = 0;
+        let animationId = null;
+
+        // AB 循环
+        let loopPointA = null;
+        let loopPointB = null;
+
+        // ==================== DOM 元素 ====================
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const playerSection = document.getElementById('playerSection');
+        const fileName = document.getElementById('fileName');
+        const changeFileBtn = document.getElementById('changeFileBtn');
+        const playBtn = document.getElementById('playBtn');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const skipBackBtn = document.getElementById('skipBackBtn');
+        const skipForwardBtn = document.getElementById('skipForwardBtn');
+        const currentTimeEl = document.getElementById('currentTime');
+        const durationEl = document.getElementById('duration');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const abLoopSection = document.getElementById('abLoopSection');
+        const abStatus = document.getElementById('abStatus');
+        const setABtn = document.getElementById('setABtn');
+        const setBBtn = document.getElementById('setBBtn');
+        const cancelLoopBtn = document.getElementById('cancelLoopBtn');
+        const pointAEl = document.getElementById('pointA');
+        const pointBEl = document.getElementById('pointB');
+        const abMarkerA = document.getElementById('abMarkerA');
+        const abMarkerB = document.getElementById('abMarkerB');
+        const abRegion = document.getElementById('abRegion');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
+        const toast = document.getElementById('toast');
+
+        // ==================== 工具函数 ====================
+        function formatTime(seconds) {
+            if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function showToast(message, type = 'info') {
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.className = 'toast', 2000);
+        }
+
+        function showLoading(show, text = '正在加载...') {
+            loadingOverlay.className = show ? 'loading-overlay active' : 'loading-overlay';
+            loadingText.textContent = text;
+        }
+
+        // ==================== 音频播放核心 ====================
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            return audioContext;
+        }
+
+        function createSource() {
+            stopPlayback();
+
+            const ctx = initAudioContext();
+
+            sourceNode = ctx.createBufferSource();
+            sourceNode.buffer = audioBuffer;
+
+            gainNode = ctx.createGain();
+            gainNode.gain.value = 1.0;
+
+            sourceNode.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            return sourceNode;
+        }
+
+        function play() {
+            if (!audioBuffer) return;
+
+            const ctx = initAudioContext();
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+
+            const src = createSource();
+
+            let offset = pauseTime;
+            if (offset >= duration) {
+                offset = 0;
+                pauseTime = 0;
+            }
+
+            src.start(0, offset);
+            startTime = ctx.currentTime - offset;
+            isPlaying = true;
+            updatePlayButton();
+            startProgressLoop();
+
+            src.onended = () => {
+                if (isPlaying) {
+                    if (loopPointA !== null && loopPointB !== null) {
+                        // AB 循环
+                        pauseTime = loopPointA;
+                        play();
+                    } else {
+                        isPlaying = false;
+                        pauseTime = 0;
+                        updatePlayButton();
+                        updateProgress();
+                    }
+                }
+            };
+        }
+
+        function pause() {
+            if (!isPlaying || !sourceNode) return;
+            pauseTime = getCurrentTime();
+            stopPlayback();
+            isPlaying = false;
+            updatePlayButton();
+            updateProgress();
+        }
+
+        function stopPlayback() {
+            if (sourceNode) {
+                try { sourceNode.stop(); } catch(e) {}
+                try { sourceNode.disconnect(); } catch(e) {}
+                sourceNode = null;
+            }
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                pause();
+            } else {
+                play();
+            }
+        }
+
+        function getCurrentTime() {
+            if (!audioContext) return 0;
+            if (isPlaying) {
+                return audioContext.currentTime - startTime;
+            }
+            return pauseTime;
+        }
+
+        function seek(time) {
+            const wasPlaying = isPlaying;
+            if (wasPlaying) stopPlayback();
+            pauseTime = Math.max(0, Math.min(time, duration));
+            updateProgress();
+            if (wasPlaying) play();
+        }
+
+        function skip(seconds) {
+            seek(getCurrentTime() + seconds);
+        }
+
+        function startProgressLoop() {
+            function update() {
+                if (!isPlaying) return;
+
+                const currentTime = getCurrentTime();
+
+                if (loopPointA !== null && loopPointB !== null) {
+                    if (currentTime >= loopPointB) {
+                        pauseTime = loopPointA;
+                        stopPlayback();
+                        play();
+                        return;
+                    }
+                }
+
+                updateProgress();
+                animationId = requestAnimationFrame(update);
+            }
+            animationId = requestAnimationFrame(update);
+        }
+
+        function updatePlayButton() {
+            playIcon.style.display = isPlaying ? 'none' : 'block';
+            pauseIcon.style.display = isPlaying ? 'block' : 'none';
+        }
+
+        function updateProgress() {
+            const currentTime = getCurrentTime();
+            const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+            progressFill.style.width = `${Math.min(100, progress)}%`;
+            currentTimeEl.textContent = formatTime(currentTime);
+        }
+
+        // ==================== 文件上传 ====================
+        uploadArea.addEventListener('click', () => fileInput.click());
+        changeFileBtn.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleFile(file);
+        });
+
+        async function handleFile(file) {
+            const validTypes = ['audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/mp3'];
+            const ext = file.name.toLowerCase().split('.').pop();
+            if (!validTypes.includes(file.type) && ext !== 'mp3' && ext !== 'wav') {
+                showToast('请选择 MP3 或 WAV 格式的音频文件', 'error');
+                return;
+            }
+
+            showLoading(true, '正在加载音频...');
+            fileName.textContent = file.name;
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                initAudioContext();
+                audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+                // 重置播放状态
+                pauseTime = 0;
+                isPlaying = false;
+
+                duration = audioBuffer.duration;
+                durationEl.textContent = formatTime(duration);
+                playerSection.classList.add('active');
+                abLoopSection.classList.add('active');
+                uploadArea.style.display = 'none';
+
+                resetPlayback();
+                showToast('音频加载成功', 'success');
+                setTimeout(() => showLoading(false), 300);
+            } catch (error) {
+                console.error('音频加载失败:', error);
+                showToast('音频加载失败，请尝试其他文件', 'error');
+                showLoading(false);
+            }
+        }
+
+        function resetPlayback() {
+            stopPlayback();
+            isPlaying = false;
+            loopPointA = null;
+            loopPointB = null;
+            pointAEl.textContent = '--:--';
+            pointBEl.textContent = '--:--';
+            updatePlayButton();
+            updateProgress();
+            updateABMarkers();
+            updateABStatus();
+        }
+
+        // ==================== 事件绑定 ====================
+        playBtn.addEventListener('click', togglePlay);
+        skipBackBtn.addEventListener('click', () => skip(-3));
+        skipForwardBtn.addEventListener('click', () => skip(3));
+
+        progressBar.addEventListener('click', (e) => {
+            const rect = progressBar.getBoundingClientRect();
+            seek((e.clientX - rect.left) / rect.width * duration);
+        });
+
+        let isDragging = false;
+        progressBar.addEventListener('mousedown', () => isDragging = true);
+        progressBar.addEventListener('touchstart', () => isDragging = true);
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const rect = progressBar.getBoundingClientRect();
+                seek((e.clientX - rect.left) / rect.width * duration);
+            }
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                const rect = progressBar.getBoundingClientRect();
+                seek((e.touches[0].clientX - rect.left) / rect.width * duration);
+            }
+        });
+
+        document.addEventListener('mouseup', () => isDragging = false);
+        document.addEventListener('touchend', () => isDragging = false);
+
+        // ==================== AB 循环 ====================
+        function updateABMarkers() {
+            if (!duration) return;
+
+            if (loopPointA !== null) {
+                abMarkerA.style.left = `calc(${(loopPointA / duration) * 100}% - 2px)`;
+                abMarkerA.classList.add('visible');
+            } else {
+                abMarkerA.classList.remove('visible');
+            }
+
+            if (loopPointB !== null) {
+                abMarkerB.style.left = `calc(${(loopPointB / duration) * 100}% - 2px)`;
+                abMarkerB.classList.add('visible');
+
+                if (loopPointA !== null) {
+                    abRegion.style.left = `${(loopPointA / duration) * 100}%`;
+                    abRegion.style.width = `${((loopPointB - loopPointA) / duration) * 100}%`;
+                    abRegion.classList.add('visible');
+                }
+            } else {
+                abMarkerB.classList.remove('visible');
+                abRegion.classList.remove('visible');
+            }
+        }
+
+        function setPointA() {
+            loopPointA = getCurrentTime();
+            pointAEl.textContent = formatTime(loopPointA);
+            updateABMarkers();
+            updateABStatus();
+            showToast(`A 点已设置: ${formatTime(loopPointA)}`, 'info');
+        }
+
+        function setPointB() {
+            const currentTime = getCurrentTime();
+            if (loopPointA === null) {
+                showToast('请先设置 A 点', 'error');
+                return;
+            }
+            if (currentTime <= loopPointA) {
+                showToast('B 点必须大于 A 点', 'error');
+                return;
+            }
+            loopPointB = currentTime;
+            pointBEl.textContent = formatTime(loopPointB);
+            updateABMarkers();
+            updateABStatus();
+            showToast(`B 点已设置: ${formatTime(loopPointB)}`, 'info');
+
+            if (isPlaying && (currentTime < loopPointA || currentTime >= loopPointB)) {
+                pauseTime = loopPointA;
+                play();
+            }
+        }
+
+        function cancelLoop() {
+            loopPointA = null;
+            loopPointB = null;
+            pointAEl.textContent = '--:--';
+            pointBEl.textContent = '--:--';
+            updateABMarkers();
+            updateABStatus();
+            showToast('AB 循环已取消', 'info');
+        }
+
+        function updateABStatus() {
+            if (loopPointA !== null && loopPointB !== null) {
+                abStatus.textContent = '循环中';
+                abStatus.className = 'ab-status active';
+            } else if (loopPointA !== null) {
+                abStatus.textContent = 'A 已设置';
+                abStatus.className = 'ab-status active';
+            } else {
+                abStatus.textContent = '未设置';
+                abStatus.className = 'ab-status inactive';
+            }
+        }
+
+        setABtn.addEventListener('click', setPointA);
+        setBBtn.addEventListener('click', setPointB);
+        cancelLoopBtn.addEventListener('click', cancelLoop);
+
+        // ==================== 键盘快捷键 ====================
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            switch (e.key) {
+                case ' ':
+                    e.preventDefault();
+                    togglePlay();
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    skip(-3);
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    skip(3);
+                    break;
+                case 'a':
+                case 'A':
+                    if (audioBuffer) {
+                        e.preventDefault();
+                        setPointA();
+                    }
+                    break;
+                case 'b':
+                case 'B':
+                    if (audioBuffer) {
+                        e.preventDefault();
+                        setPointB();
+                    }
+                    break;
+                case 'c':
+                case 'C':
+                    if (audioBuffer) {
+                        e.preventDefault();
+                        cancelLoop();
+                    }
+                    break;
+            }
+        });
+
+        console.log('扒哥神器已就绪');
+    </script>
+</body>
+</html>
